@@ -1,0 +1,20 @@
+name: Build APK
+on: [push, workflow_dispatch]
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.50.1'
+      - run: unzip -oq cashcheck_repo.zip
+      - run: cp proj/android/gradle.properties.github proj/android/gradle.properties
+      - run: cd proj && flutter pub get && flutter build apk --debug
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.2.0
+          name: CashCheck v1.2.0
+          files: proj/build/app/outputs/flutter-apk/app-debug.apk
