@@ -1,5 +1,5 @@
 name: Build APK
-on: [push, workflow_dispatch]
+on: [workflow_dispatch]
 permissions:
   contents: write
 jobs:
@@ -10,11 +10,11 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.50.1'
-      - run: curl -sL -o src.zip https://github.com/PlanEhab2025/cashcheck/releases/download/source-v1.3.0/cashcheck_repo.zip && unzip -oq src.zip
+      - run: curl -sL -o src.zip https://github.com/PlanEhab2025/cashcheck/releases/download/source-v1.4.0/2-cashcheck_repo.zip && unzip -oq src.zip
       - run: cp proj/android/gradle.properties.github proj/android/gradle.properties
       - run: cd proj && flutter pub get && flutter build apk --release
       - uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.3.0
-          name: CashCheck v1.3.0
+          tag_name: v1.4.0
+          name: CashCheck v1.4.0
           files: proj/build/app/outputs/flutter-apk/app-release.apk
