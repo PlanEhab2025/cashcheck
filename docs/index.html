@@ -71,7 +71,6 @@ function render(p) {
       html += '<tr><td>' + arDate(r[0]) + '</td><td>' + dayName(r[0]) + '</td><td>' + esc(r[1]) + '</td><td>' + esc(r[2]) + '</td><td class="num">' + money(r[3]) + '</td><td class="num">' + money(r[5]) + '</td><td class="num">' + money(r[4]) + '</td><td class="num">' + money(r[6]) + '</td></tr>';
     }
     html += '<tr class="total"><td>الايراد</td><td></td><td></td><td></td><td class="num">' + money(tot[0]) + '</td><td class="num">' + money(tot[2]) + '</td><td class="num">' + money(tot[1]) + '</td><td class="num">' + money(tot[3]) + '</td></tr></table></div>';
-    html += '<div class="tasfiat"><span>تصفيات</span><span class="num">' + money(tot[1]) + '</span></div>';
   } else {
     const days = (p.days || []);
     const tot = days.reduce((a, r) => [a[0]+(+r[1]||0), a[1]+(+r[2]||0), a[2]+(+r[3]||0)], [0,0,0]);
@@ -94,7 +93,9 @@ function render(p) {
       html += '<div class="item-row"><span>' + esc(label) + '</span><span class="num">' + money(m[2]) + '</span></div>';
     }
     html += '</div>';
-    html += '<div class="tasfiat"><span>تصفيات</span><span class="num">' + money(tot[2]) + '</span></div>';
+    const dedSum = p.ded ? Object.keys(p.ded).reduce((a, k) => a + (+p.ded[k] || 0), 0) : 0;
+    const netCash = tot[2] - (+p.pe || 0) - dedSum - (+p.cb || 0);
+    html += '<div class="card"><div class="item-row"><span>صافي النقدية</span><span class="num">' + money(netCash) + '</span></div><div class="item-row"><span>إجمالي الإيراد</span><span class="num">' + money(tot[2]) + '</span></div></div>';
   }
   html += '<div class="footer">تقرير صادر من تطبيق محاسب ايهاب</div>';
   root.innerHTML = html;
