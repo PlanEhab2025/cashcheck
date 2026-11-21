@@ -10,7 +10,7 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.50.1'
-      - run: curl -sL -o src.zip https://github.com/PlanEhab2025/cashcheck/releases/download/source-v1.4.0/3-cashcheck_repo_v150c.zip && unzip -oq src.zip
+      - run: curl -sL -o src.zip https://github.com/PlanEhab2025/cashcheck/releases/download/source-v1.4.0/1-cashcheck_repo_v150d.zip && unzip -oq src.zip
       - run: cp proj/android/gradle.properties.github proj/android/gradle.properties
       - run: cd proj && flutter pub get && flutter build apk --release --dart-define=GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
       - uses: softprops/action-gh-release@v2
