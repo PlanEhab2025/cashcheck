@@ -85,9 +85,6 @@ function render(p) {
     if (p.pay) for (const y of p.pay) {
       html += '<div class="item-row"><span>' + arDate(y[0]) + ' · ' + esc(y[1]) + '</span><span class="num">' + money(y[2]) + '</span></div>';
     }
-    if (p.ded) for (const k of Object.keys(p.ded)) {
-      html += '<div class="item-row"><span>' + esc(k) + '</span><span class="num">' + money(p.ded[k]) + '</span></div>';
-    }
     if (p.man) for (const m of p.man) {
       const label = m[1] + (m[3] ? ' - ' + m[3] : '');
       html += '<div class="item-row"><span>' + esc(label) + '</span><span class="num">' + money(m[2]) + '</span></div>';
