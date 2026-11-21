@@ -1,5 +1,10 @@
 name: Build APK
-on: [workflow_dispatch]
+on:
+  workflow_dispatch:
+    inputs:
+      src:
+        description: 'Source zip URL'
+        default: 'https://github.com/PlanEhab2025/cashcheck/releases/download/source-v1.4.0/2-7-cashcheck_repo_v153.zip'
 permissions:
   contents: write
 jobs:
@@ -10,13 +15,13 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.50.1'
-      - run: curl -sL -o src.zip https://github.com/PlanEhab2025/cashcheck/releases/download/source-v1.4.0/6-cashcheck_repo_v152e.zip && unzip -oq src.zip
+      - run: curl -sL -o src.zip "${{ inputs.src }}" && unzip -oq src.zip
       - run: cp proj/android/gradle.properties.github proj/android/gradle.properties
       - run: cd proj && flutter pub get && flutter build apk --release --dart-define=GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
       - name: Rename APK with version
-        run: cd proj && VER=$(grep '^version:' pubspec.yaml | awk '{print $2}' | cut -d+ -f1) && cp build/app/outputs/flutter-apk/app-release.apk "build/app/outputs/flutter-apk/cashcheck-$VER.apk" && echo "APK_PATH=proj/build/app/outputs/flutter-apk/cashcheck-$VER.apk" >> "$GITHUB_ENV"
+        run: cd proj && VER=$(grep '^version:' pubspec.yaml | awk '{print $2}' | cut -d+ -f1) && cp build/app/outputs/flutter-apk/app-release.apk "build/app/outputs/flutter-apk/cashcheck-$VER.apk" && echo "APK_PATH=proj/build/app/outputs/flutter-apk/cashcheck-$VER.apk" >> "$GITHUB_ENV" && echo "VER=$VER" >> "$GITHUB_ENV"
       - uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.5.2
-          name: CashCheck v1.5.2
+          tag_name: v${{ env.VER }}
+          name: CashCheck v${{ env.VER }}
           files: ${{ env.APK_PATH }}
