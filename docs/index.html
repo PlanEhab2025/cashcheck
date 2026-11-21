@@ -50,72 +50,27 @@ function b64urlDecode(s) {
   return new TextDecoder().decode(bytes);
 }
 function esc(s) {
-<html lang="ar" dir="rtl">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>تقرير مراجعة الكاشير</title>
-<style>
-  * { box-sizing: border-box; }
-  body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; margin: 0; background: #f2f5f8; color: #1a2733; }
-  .page { max-width: 720px; margin: 0 auto; padding: 16px; }
-  .card { background: #fff; border-radius: 12px; padding: 18px; margin-bottom: 14px; box-shadow: 0 1px 4px rgba(15,76,129,.08); }
-  h1 { font-size: 20px; color: #0f4c81; margin: 0 0 4px; }
-  .sub { color: #5b7186; font-size: 14px; margin-bottom: 8px; }
-  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
-  th, td { border: 1px solid #cfdce8; padding: 7px 6px; text-align: center; }
-  th { background: #0f4c81; color: #fff; font-weight: 600; }
-  tr.total td { background: #e8f1f8; font-weight: 700; }
-  .num { font-variant-numeric: tabular-nums; }
-  .item-row { display: flex; justify-content: space-between; padding: 7px 4px; border-bottom: 1px solid #e3ecf4; font-size: 15px; }
-  .item-row:last-child { border-bottom: none; }
-  .tasfiat { background: #0f4c81; color: #fff; border-radius: 10px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; font-size: 18px; font-weight: 700; }
-  .err { background: #fdecea; color: #8a1f17; padding: 18px; border-radius: 12px; font-size: 15px; }
-  h2 { font-size: 16px; color: #0f4c81; margin: 14px 0 4px; }
-  .footer { text-align: center; color: #8aa0b4; font-size: 12px; margin-top: 18px; }
-</style>
-</head>
-<body>
-<div class="page" id="root"><div class="card">جاري تحميل التقرير...</div></div>
-<script>
-const DAY_NAMES = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
-const AR_DIGITS = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
-function arDate(iso) {
-  const p = String(iso).split('-');
-  if (p.length !== 3) return iso;
-  return (p[0] + '/' + p[1] + '/' + p[2]).replace(/[0-9]/g, d => AR_DIGITS[+d]);
-}
-function dayName(iso) {
-  const d = new Date(iso + 'T12:00:00');
-  return isNaN(d) ? '' : DAY_NAMES[d.getDay()];
-}
-function money(v) {
-  const n = Number(v) || 0;
-  return n.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' ج.م';
-}
-function b64urlDecode(s) {
-  s = s.replace(/-/g, '+').replace(/_/g, '/');
-  while (s.length % 4) s += '=';
-  const bin = atob(s);
-  const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
-  return new TextDecoder().decode(bytes);
-}
-function esc(s) {
   return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 function render(p) {
   const root = document.getElementById('root');
   const range = (p.f && p.to) ? 'من ' + arDate(p.f) + ' إلى ' + arDate(p.to) : 'كل الفترات';
   let html = '';
-  if (p.t === 'd') {
+  if (p.t === 'v') {
+    const rows = p.rows || [];
+    html += '<div class="card"><h1>كشف الموردين والتنزيلات التفصيلي</h1><div class="sub">' + esc(p.br || '') + ' | ' + range + '</div>';
+    html += '<table><tr><th>التاريخ</th><th>المورد</th><th>البيان</th><th>رصيد أول الفترة</th><th>المشتريات</th><th>التنزيل</th><th>رصيد المديونية</th></tr>';
+    rows.forEach(r => { html += '<tr><td>' + arDate(r[0]) + '</td><td>' + esc(r[1]) + '</td><td>' + esc(r[2]) + '</td><td class="num">' + money(r[3]) + '</td><td class="num">' + money(r[4]) + '</td><td class="num">' + money(r[5]) + '</td><td class="num">' + money(r[6]) + '</td></tr>'; });
+    html += '</table></div>';
+  } else if (p.t === 'd') {
     const rows = (p.sh || []);
     const tot = rows.reduce((a, r) => [a[0]+(+r[3]||0), a[1]+(+r[4]||0), a[2]+(+r[5]||0), a[3]+(+r[6]||0)], [0,0,0,0]);
     html += '<div class="card"><h1>التقرير التفصيلي للورديات</h1><div class="sub">' + esc(p.br || '') + ' | ' + range + '</div>';
-    html += '<table><tr><th>التاريخ</th><th>اليوم</th><th>الوردية</th><th>الكاشير</th><th>النقدية</th><th>الايراد</th><th>المصاريف</th><th>العجز/الزيادة</th></tr>';
+    html += '<table><tr><th>التاريخ</th><th>اليوم</th><th>الوردية</th><th>الكاشير</th><th>النقدية</th><th>المصاريف</th><th>الايراد</th><th>العجز/الزيادة</th></tr>';
     for (const r of rows) {
-      html += '<tr><td>' + arDate(r[0]) + '</td><td>' + dayName(r[0]) + '</td><td>' + esc(r[1]) + '</td><td>' + esc(r[2]) + '</td><td class="num">' + money(r[3]) + '</td><td class="num">' + money(r[4]) + '</td><td class="num">' + money(r[5]) + '</td><td class="num">' + money(r[6]) + '</td></tr>';
+      html += '<tr><td>' + arDate(r[0]) + '</td><td>' + dayName(r[0]) + '</td><td>' + esc(r[1]) + '</td><td>' + esc(r[2]) + '</td><td class="num">' + money(r[3]) + '</td><td class="num">' + money(r[5]) + '</td><td class="num">' + money(r[4]) + '</td><td class="num">' + money(r[6]) + '</td></tr>';
     }
-    html += '<tr class="total"><td>الايراد</td><td></td><td></td><td></td><td class="num">' + money(tot[0]) + '</td><td class="num">' + money(tot[1]) + '</td><td class="num">' + money(tot[2]) + '</td><td class="num">' + money(tot[3]) + '</td></tr></table></div>';
+    html += '<tr class="total"><td>الايراد</td><td></td><td></td><td></td><td class="num">' + money(tot[0]) + '</td><td class="num">' + money(tot[2]) + '</td><td class="num">' + money(tot[1]) + '</td><td class="num">' + money(tot[3]) + '</td></tr></table></div>';
     html += '<div class="tasfiat"><span>تصفيات</span><span class="num">' + money(tot[1]) + '</span></div>';
   } else {
     const days = (p.days || []);
@@ -146,7 +101,7 @@ function render(p) {
 }
 try {
   const h = location.hash || '';
-  const m = h.match(/#([sd])=([A-Za-z0-9\-_]+)/);
+  const m = h.match(/#([sdv])=([A-Za-z0-9\-_]+)/);
   if (!m) throw new Error('bad');
   render(JSON.parse(b64urlDecode(m[2])));
 } catch (e) {
