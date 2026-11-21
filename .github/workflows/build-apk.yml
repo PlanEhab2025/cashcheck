@@ -13,8 +13,10 @@ jobs:
       - run: curl -sL -o src.zip https://github.com/PlanEhab2025/cashcheck/releases/download/source-v1.4.0/2-cashcheck_repo_v151b.zip && unzip -oq src.zip
       - run: cp proj/android/gradle.properties.github proj/android/gradle.properties
       - run: cd proj && flutter pub get && flutter build apk --release --dart-define=GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+      - name: Rename APK with version
+        run: cd proj && VER=$(grep '^version:' pubspec.yaml | awk '{print $2}' | cut -d+ -f1) && cp build/app/outputs/flutter-apk/app-release.apk "build/app/outputs/flutter-apk/cashcheck-$VER.apk" && echo "APK_PATH=proj/build/app/outputs/flutter-apk/cashcheck-$VER.apk" >> "$GITHUB_ENV"
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: v1.5.1
-          name: CashCheck v1.5.0
-          files: proj/build/app/outputs/flutter-apk/app-release.apk
+          name: CashCheck v1.5.1
+          files: ${{ env.APK_PATH }}
