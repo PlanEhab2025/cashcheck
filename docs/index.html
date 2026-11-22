@@ -56,7 +56,28 @@ function render(p) {
   const root = document.getElementById('root');
   const range = (p.f && p.to) ? 'من ' + arDate(p.f) + ' إلى ' + arDate(p.to) : 'كل الفترات';
   let html = '';
-  if (p.t === 'v') {
+  if (p.t === 'e') {
+    const gs = p.g || [];
+    const grand = gs.reduce((a, g) => a + (+g[1] || 0), 0);
+    html += '<div class="card"><h1>تقرير المصروفات بالتحليل الاقتصادي</h1><div class="sub">' + esc(p.br || '') + ' | ' + esc(p.pr || '') + '</div>';
+    html += '<table><tr><th>التصنيف</th><th>البنود</th><th>الإجمالي</th><th>النسبة</th></tr>';
+    gs.forEach(g => { html += '<tr><td>' + esc(g[0]) + '</td><td>' + g[2].length + '</td><td class="num">' + money(g[1]) + '</td><td>' + (grand ? (g[1] * 100 / grand).toFixed(1) + '%' : '-') + '</td></tr>'; });
+    html += '<tr class="total"><td>الإجمالي</td><td>' + gs.reduce((a, g) => a + g[2].length, 0) + '</td><td class="num">' + money(grand) + '</td><td></td></tr></table></div>';
+    gs.forEach(g => {
+      html += '<div class="card"><h2>' + esc(g[0]) + ': ' + money(g[1]) + '</h2>';
+      g[2].forEach(r => { html += '<div class="item-row"><span>' + arDate(r[0]) + ' · ' + esc(r[1]) + ' (' + esc(r[2]) + ')</span><span class="num">' + money(r[3]) + '</span></div>'; });
+      html += '</div>';
+    });
+  } else if (p.t === 'c') {
+    const per = p.per || [];
+    html += '<div class="card" style="overflow-x:auto"><h1>مقارنة المصروفات بين فترات' + (p.det ? ' (تفصيلي)' : ' (إجمالي)') + '</h1><div class="sub">' + esc(p.br || '') + '</div>';
+    html += '<table><tr><th>البند</th>' + per.map(x => '<th>' + esc(x) + '</th>').join('') + '</tr>';
+    (p.rows || []).forEach((r, i, a) => {
+      const last = i === a.length - 1;
+      html += '<tr' + (last ? ' class="total"' : '') + '><td style="text-align:right;' + (r[1] ? 'font-weight:700' : '') + '">' + esc(String(r[0]).trim()) + '</td>' + r[2].map(v => '<td class="num">' + (+v === 0 ? '-' : money(v)) + '</td>').join('') + '</tr>';
+    });
+    html += '</table></div>';
+  } else if (p.t === 'v') {
     const rows = p.rows || [];
     html += '<div class="card"><h1>كشف الموردين والتنزيلات التفصيلي</h1><div class="sub">' + esc(p.br || '') + ' | ' + range + '</div>';
     html += '<table><tr><th>التاريخ</th><th>المورد</th><th>البيان</th><th>رصيد أول الفترة</th><th>المشتريات</th><th>التنزيل</th><th>رصيد المديونية</th></tr>';
@@ -99,7 +120,7 @@ function render(p) {
 }
 try {
   const h = location.hash || '';
-  const m = h.match(/#([sdv])=([A-Za-z0-9\-_]+)/);
+  const m = h.match(/#([sdvec])=([A-Za-z0-9\-_]+)/);
   if (!m) throw new Error('bad');
   render(JSON.parse(b64urlDecode(m[2])));
 } catch (e) {
