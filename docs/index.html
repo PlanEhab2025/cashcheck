@@ -22,6 +22,15 @@
   .err { background: #fdecea; color: #8a1f17; padding: 18px; border-radius: 12px; font-size: 15px; }
   h2 { font-size: 16px; color: #0f4c81; margin: 14px 0 4px; }
   .footer { text-align: center; color: #8aa0b4; font-size: 12px; margin-top: 18px; }
+.kpis { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+  .kpi { flex: 1 1 140px; background: #e8f1f8; border-radius: 10px; padding: 10px; }
+  .kpi span { font-size: 12px; color: #5b7186; }
+  .kpi b { display: block; font-size: 17px; margin-top: 2px; }
+  .kpi.good b { color: #1b7a3a; }
+  .kpi.bad b { color: #b3261e; }
+  .scroll { overflow-x: auto; }
+  .notes { background: #fff8e1; border-radius: 10px; padding: 10px 14px; font-size: 13px; color: #5d4a00; }
+  .notes div { margin: 4px 0; }
 </style>
 </head>
 <body>
@@ -52,11 +61,36 @@ function b64urlDecode(s) {
 function esc(s) {
   return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
+function gfmt(v, k) {
+  if (typeof v === 'number') {
+    if (k === 'm') return money(v);
+    if (k === 'p') return v.toFixed(1) + '%';
+    return v.toLocaleString('en-US', {maximumFractionDigits: 2});
+  }
+  return esc(v);
+}
 function render(p) {
   const root = document.getElementById('root');
   const range = (p.f && p.to) ? 'من ' + arDate(p.f) + ' إلى ' + arDate(p.to) : 'كل الفترات';
   let html = '';
-  if (p.t === 'e') {
+  if (p.t === 'g') {
+    html += '<div class="card"><h1>' + esc(p.title) + '</h1><div class="sub">' + esc(p.sub || '') + '</div>';
+    if ((p.k || []).length) {
+      html += '<div class="kpis">';
+      p.k.forEach(k => { html += '<div class="kpi ' + (k[3] || '') + '"><span>' + esc(k[0]) + '</span><b>' + gfmt(k[1], k[2]) + '</b></div>'; });
+      html += '</div>';
+    }
+    html += '</div>';
+    (p.s || []).forEach(sec => {
+      const strong = new Set(sec.b || []);
+      html += '<div class="card"><h2>' + esc(sec.h) + '</h2><div class="scroll"><table><tr>' + sec.c.map(c => '<th>' + esc(c[0]) + '</th>').join('') + '</tr>';
+      sec.r.forEach((r, i) => {
+        html += '<tr' + (strong.has(i) ? ' class="total"' : '') + '>' + r.map((v, j) => '<td' + (j === 0 ? ' style="text-align:right"' : ' class="num"') + '>' + gfmt(v, sec.c[j][1]) + '</td>').join('') + '</tr>';
+      });
+      html += '</table></div></div>';
+    });
+    if ((p.n || []).length) html += '<div class="card notes">' + p.n.map(n => '<div>• ' + esc(n) + '</div>').join('') + '</div>';
+  } else if (p.t === 'e') {
     const gs = p.g || [];
     const grand = gs.reduce((a, g) => a + (+g[1] || 0), 0);
     html += '<div class="card"><h1>تقرير المصروفات بالتحليل الاقتصادي</h1><div class="sub">' + esc(p.br || '') + ' | ' + esc(p.pr || '') + '</div>';
@@ -120,7 +154,7 @@ function render(p) {
 }
 try {
   const h = location.hash || '';
-  const m = h.match(/#([sdvec])=([A-Za-z0-9\-_]+)/);
+  const m = h.match(/#([sdvecg])=([A-Za-z0-9\-_]+)/);
   if (!m) throw new Error('bad');
   render(JSON.parse(b64urlDecode(m[2])));
 } catch (e) {
